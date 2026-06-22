@@ -66,7 +66,7 @@
   }
 
   .hero-content{ 
-    position:relative; z-index:5; text-align:center; padding: 40px 24px; 
+    position:relative; z-index:3; text-align:center; padding: 40px 24px; 
     /* [ADDITION: NAME ACCESSIBILITY] Add background for the names */
     background: rgba(59, 42, 34, 0.8); /* Semi-transparent ink background */
     border-radius: 12px;
@@ -327,7 +327,8 @@ photo: "",
   closing: "We are waiting for you"
 };
 
-/* ---------- ????? ??????? ?? CONFIG ---------- */
+
+/* ---------- تعبئة المحتوى من CONFIG ---------- */
 document.getElementById('eyebrowTop').textContent  = CONFIG.eyebrowTop;
 document.getElementById('heroTagline').textContent = CONFIG.heroTagline;
 document.getElementById('eyebrow').textContent      = CONFIG.eyebrow;
@@ -337,7 +338,7 @@ document.getElementById('timeLabel').textContent    = CONFIG.timeLabel;
 document.getElementById('timeValue').textContent    = CONFIG.timeValue;
 document.getElementById('closing').textContent      = CONFIG.closing;
 
-/* ---------- ????? ??????? ?? ?????? ---------- */
+/* ---------- خلفية الفيديو أو الصورة ---------- */
 const bgVideoEl = document.getElementById('bgVideo');
 const bgPhotoEl = document.getElementById('bgPhoto');
 let videoReady = false;
@@ -346,9 +347,9 @@ if (CONFIG.video) {
   bgVideoEl.src = CONFIG.video;
   bgVideoEl.classList.add('is-active');
 
-  // ??????? ???? ???? ??? ??? ???? ??? ?? ???????? ???? ??????.
-  // ?????? play/pause ?? ?? ???? ??????? ???????? (????? ??????)
-  // ????? ??? ???? ??????? ?? ???? ??????? ??? ?????.
+  // الفيديو يفضل ثابت على أول فريم لحد ما المستخدم يبدأ يسكرول.
+  // اللعبة play/pause دي بس عشان متصفحات الموبايل (سفاري بالأخص)
+  // تحمّل أول فريم فعليًا، مش عشان الفيديو يلف لوحده.
   bgVideoEl.addEventListener('loadedmetadata', () => {
     videoReady = true;
     const p = bgVideoEl.play();
@@ -366,7 +367,7 @@ if (CONFIG.video) {
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---------- ???? ????? + ???????? ---------- */
+/* ---------- بناء الاسم + الفلوريش ---------- */
 function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
 
 function buildNameSequence(){
@@ -379,8 +380,8 @@ function buildNameSequence(){
   return seq;
 }
 
-/* ????? ?? ???? ????? ???? ?????? ?? ??? ?????? ???? ???? ???? ????
-   ????? ?????? (???? + ???? ?????) ?? ?? ?????? ?????? ????? */
+/* بيضيف كل حروف الاسم دفعة واحدة، كل حرف بتاخير بسيط عشان يظهر بشكل
+   زخرفي متتابع (بلور + رفعة خفيفة) مش زي كيرسور كيبورد بيكتب */
 function revealName(){
   const seq = buildNameSequence();
   const container = document.getElementById('nameSlot');
@@ -431,7 +432,7 @@ if (reduceMotion) {
 
     await sleep(150);
     const letterCount = revealName();
-    await sleep(letterCount * 60 + 750); // ??? ???? ????? ?? ?????? ????????
+    await sleep(letterCount * 60 + 750); // وقت كافي لظهور كل الحروف بزخرفتها
 
     document.getElementById('dotsRow').classList.add('show');
     await sleep(150);
@@ -445,7 +446,7 @@ if (reduceMotion) {
   })();
 }
 
-/* ????? ????? ??? ???????? ?????? */
+/* تقسيم عنوان قسم التفاصيل لكلمات */
 const titleEl = document.getElementById('title');
 CONFIG.title.split(' ').forEach(word => {
   const span = document.createElement('span');
@@ -454,7 +455,7 @@ CONFIG.title.split(' ').forEach(word => {
   titleEl.appendChild(span);
 });
 
-/* ---------- ???? ??? ???????? ??? ??????? ---------- */
+/* ---------- ظهور قسم التفاصيل عند السكرول ---------- */
 const detailsSection = document.getElementById('details');
 const sectionObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
@@ -463,9 +464,9 @@ const sectionObserver = new IntersectionObserver(entries => {
 }, { threshold: 0.25 });
 sectionObserver.observe(detailsSection);
 
-/* ---------- ??????? ????? ?? ???? ??????? ?? ???? ????? ?????
-   (??????? ????? ????? ??????? ?? ???? ???? ?????? ???????)
-   ?? ????? ?? ?????: ???? seek ???? ??? ??? ?? ???? ???? ???? ---------- */
+/* ---------- السكرول يتحكم في فريم الفيديو زي شريط فيديو حقيقي
+   (الفيديو ثابت، وموقع السكرول هو اللي يحدد الفريم المعروض)
+   مع حماية من اللاج: مفيش seek جديد إلا بعد ما اللي قبله يخلص ---------- */
 const heroEl = document.querySelector('.hero');
 const heroOverlayEl = document.getElementById('heroOverlay');
 const bgLayer = bgVideoEl.classList.contains('is-active') ? bgVideoEl : bgPhotoEl;
@@ -489,8 +490,8 @@ if (!reduceMotion) {
 
   function requestVideoTime(time) {
     if (!videoReady) return;
-    if (Math.abs(bgVideoEl.currentTime - time) < 0.03) return; // ??? ????? ??????? seek
-    if (isSeeking) { pendingTime = time; return; }              // ??? ???? ???? ???? ?????
+    if (Math.abs(bgVideoEl.currentTime - time) < 0.03) return; // فرق صغير، متستحقش seek
+    if (isSeeking) { pendingTime = time; return; }              // سيب اللي شغال يخلص الأول
     isSeeking = true;
     bgVideoEl.currentTime = time;
   }
@@ -502,14 +503,9 @@ if (!reduceMotion) {
 
     const scale = 1 + progress * 0.22;
     const lift  = progress * 50;
-    /* [MODIFICATION: SMOOTH BACKGROUND] Update style using transition already added in CSS */
     bgLayer.style.transform = `scale(${scale}) translateY(${-lift}px)`;
     heroOverlayEl.style.opacity = progress * 0.65;
 
-    /* [MODIFICATION: SMOOTH BACKGROUND]
-       We keep the original scroll-based seek logic,
-       but the smoothness is mainly handled by the CSS transition on the container itself now.
-    */
     if (isVideoLayer && bgVideoEl.duration) {
       requestVideoTime(bgVideoEl.duration * progress);
     }
