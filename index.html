@@ -1,18 +1,4 @@
 <!DOCTYPE html>
-<!--
-  ============================================================
-  ???? ????? / ???? - ????? ?????? ???? (???????? + ????? solid)
-  Engagement / Wedding Invite — elegant classic style
-  ============================================================
-  ???? ????? ?????? ??????? ???? ?? ???? CONFIG ?? ??? <script> ???
-  (???????? ??????? ??????? ???????/??????? ???????? ???????? ??????)
-  + ??????? ?? :root
-
-  ?????? ?? ???????: ???? ?????? ????? ?????? ????? (bokeh lights) ??
-  Mixkit ???? ???? ?????? ?????. ??? ????? ????? ??????? ????????
-  ?????? ???? CONFIG.video ????? ??????? ?????? (?????? ??? ?????
-  ????? ????hotlink? ?? ???? ??? ?????? embed).
--->
 <html lang="eng" dir="ltr">
 <head>
 <meta charset="UTF-8">
@@ -57,6 +43,8 @@
   .bg-photo{
     position:absolute; inset:0;
     background-size:cover; background-position:center;
+    /* [ADDITION: SMOOTH BACKGROUND] Add transition for smooth movement on scroll */
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .bg-photo.has-photo::after{
     content:''; position:absolute; inset:0;
@@ -67,6 +55,8 @@
   .bg-video{
     position:absolute; inset:0; width:100%; height:100%;
     object-fit:cover; display:none; will-change:transform;
+    /* [ADDITION: SMOOTH BACKGROUND] Add transition for smooth movement on scroll */
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .bg-video.is-active{ display:block; }
 
@@ -75,7 +65,15 @@
     background:var(--ink); opacity:0; pointer-events:none;
   }
 
-  .hero-content{ position:relative; z-index:5; text-align:center; padding:0 24px; }
+  .hero-content{ 
+    position:relative; z-index:5; text-align:center; padding: 40px 24px; 
+    /* [ADDITION: NAME ACCESSIBILITY] Add background for the names */
+    background: rgba(59, 42, 34, 0.8); /* Semi-transparent ink background */
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px); /* Optional: add a slight blur effect behind the background */
+    max-width: 90%; /* Prevent it from being too wide */
+  }
 
   .eyebrow-top{
     font-size:clamp(11px,2vw,13px);
@@ -128,7 +126,7 @@
     font-size:clamp(34px, 8vw, 78px);
     letter-spacing:.05em;
     text-transform:uppercase;
-    color:var(--ink);
+    color:var(--bg); /* Use lighter color for better contrast on dark panel background */
     white-space:nowrap;
   }
   .monogram .amp{ font-style:italic; color:var(--accent); }
@@ -150,7 +148,7 @@
     font-size:clamp(13px,2.2vw,16px);
     letter-spacing:.28em;
     text-transform:uppercase;
-    color:var(--ink);
+    color:var(--bg); /* Use lighter color for better contrast on dark panel background */
     opacity:0; transform:translateY(8px);
     transition:opacity .7s ease, transform .7s ease;
   }
@@ -244,8 +242,7 @@
 </head>
 <body>
 
-  <!-- HERO -->
-  <section class="hero">
+    <section class="hero">
     <div class="bg-photo" id="bgPhoto"></div>
 <video
   class="bg-video is-active"
@@ -293,8 +290,7 @@
     <div class="scroll-cue"><span></span>???? ??????</div>
   </section>
 
-  <!-- DETAILS -->
-  <section class="details" id="details">
+    <section class="details" id="details">
     <p class="eyebrow reveal" id="eyebrow"></p>
     <h1 class="title reveal" id="title"></h1>
     <div class="datetime reveal">
@@ -313,7 +309,7 @@
 
 <script>
 /* =========================================================
-   CONFIG — ???? ????? ??? ??? ??? ???? ????
+   CONFIG â€” ???? ????? ??? ??? ??? ???? ????
    ========================================================= */
 const CONFIG = {
   nameLeft:  "mohamed",
@@ -330,185 +326,7 @@ photo: "",
   timeValue: "5:00 PM ",
   closing: "We are waiting for you"
 };
-/*
 
-document.getElementById('eyebrowTop').textContent  = CONFIG.eyebrowTop;
-document.getElementById('heroTagline').textContent = CONFIG.heroTagline;
-document.getElementById('eyebrow').textContent      = CONFIG.eyebrow;
-document.getElementById('dateLabel').textContent    = CONFIG.dateLabel;
-document.getElementById('dateValue').textContent    = CONFIG.dateValue;
-document.getElementById('timeLabel').textContent    = CONFIG.timeLabel;
-document.getElementById('timeValue').textContent    = CONFIG.timeValue;
-document.getElementById('closing').textContent      = CONFIG.closing;
-
-
-const bgVideoEl = document.getElementById('bgVideo');
-const bgPhotoEl = document.getElementById('bgPhoto');
-let videoReady = false;
-
-if (CONFIG.video) {
-  bgVideoEl.src = CONFIG.video;
-  bgVideoEl.classList.add('is-active');
-
-  // ??????? ???? ???? ??? ??? ???? ??? ?? ???????? ???? ??????.
-  // ?????? play/pause ?? ?? ???? ??????? ???????? (????? ??????)
-  // ????? ??? ???? ??????? ?? ???? ??????? ??? ?????.
-bgVideoEl.addEventListener('loadedmetadata', () => {
-  videoReady = true;
-
-  bgVideoEl.play().catch(err => {
-    console.log(err);
-  });
-});
-  
-} else if (CONFIG.photo) {
-  bgPhotoEl.style.backgroundImage = `url("${CONFIG.photo}")`;
-  bgPhotoEl.classList.add('has-photo');
-}
-
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-
-function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
-
-function buildNameSequence(){
-  const seq = [];
-  CONFIG.nameLeft.split('').forEach(ch => seq.push({ ch, cls: '' }));
-  seq.push({ ch: ' ', cls: 'amp' });
-  seq.push({ ch: '&', cls: 'amp' });
-  seq.push({ ch: ' ', cls: 'amp' });
-  CONFIG.nameRight.split('').forEach(ch => seq.push({ ch, cls: '' }));
-  return seq;
-}
-
-
-function revealName(){
-  const seq = buildNameSequence();
-  const container = document.getElementById('nameSlot');
-  seq.forEach((item, i) => {
-    const span = document.createElement('span');
-    span.className = (item.cls ? item.cls + ' ' : '') + 'rchar';
-    span.style.animationDelay = (i * 0.06) + 's';
-    span.textContent = item.ch;
-    container.appendChild(span);
-  });
-  return seq.length;
-}
-
-function prepareFlourish(el){
-  const path = el.querySelector('.flourish-path');
-  const len = path.getTotalLength();
-  path.style.strokeDasharray = len;
-  path.style.strokeDashoffset = len;
-  return path;
-}
-
-function drawFlourish(el, path){
-  el.style.transition = 'opacity .5s ease';
-  el.style.opacity = '1';
-  requestAnimationFrame(() => {
-    path.style.transition = 'stroke-dashoffset 1.1s ease';
-    path.style.strokeDashoffset = '0';
-  });
-}
-
-const flourishTopEl    = document.querySelector('.flourish-top');
-const flourishBottomEl = document.querySelector('.flourish-bottom');
-
-if (reduceMotion) {
-  document.getElementById('nameSlot').textContent = CONFIG.nameLeft + ' & ' + CONFIG.nameRight;
-  flourishTopEl.style.opacity = '1';
-  flourishBottomEl.style.opacity = '1';
-  document.getElementById('dotsRow').classList.add('show');
-  document.getElementById('nameRow').classList.add('show');
-  document.getElementById('heroTagline').classList.add('show');
-} else {
-  const pathTop    = prepareFlourish(flourishTopEl);
-  const pathBottom = prepareFlourish(flourishBottomEl);
-
-  (async () => {
-    await sleep(300);
-    drawFlourish(flourishTopEl, pathTop);
-
-    await sleep(150);
-    const letterCount = revealName();
-    await sleep(letterCount * 60 + 750); // ??? ???? ????? ?? ?????? ????????
-
-    document.getElementById('dotsRow').classList.add('show');
-    await sleep(150);
-    document.getElementById('nameRow').classList.add('show');
-
-    await sleep(250);
-    drawFlourish(flourishBottomEl, pathBottom);
-
-    await sleep(500);
-    document.getElementById('heroTagline').classList.add('show');
-  })();
-}
-
-const titleEl = document.getElementById('title');
-CONFIG.title.split(' ').forEach(word => {
-  const span = document.createElement('span');
-  span.className = 'word';
-  span.textContent = word + '\u00A0';
-  titleEl.appendChild(span);
-});
-
-const detailsSection = document.getElementById('details');
-const sectionObserver = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) detailsSection.classList.add('is-visible');
-  });
-}, { threshold: 0.25 });
-sectionObserver.observe(detailsSection);
-
-
-const heroEl = document.querySelector('.hero');
-const heroOverlayEl = document.getElementById('heroOverlay');
-const bgLayer = bgVideoEl.classList.contains('is-active')
-  ? bgVideoEl
-  : bgPhotoEl;
-
-if (!reduceMotion) {
-
-  let ticking = false;
-
-  function updateOnScroll() {
-    const heroHeight = heroEl.offsetHeight;
-    const progress = Math.min(
-      Math.max(window.scrollY / heroHeight, 0),
-      1
-    );
-
-    const scale = 1 + progress * 0.35;
-    const lift = progress * 120;
-
-    bgLayer.style.transform =
-      `scale(${scale}) translate3d(0, ${-lift}px, 0)`;
-
-    heroOverlayEl.style.opacity = progress * 0.65;
-
-    document.querySelector('.hero-content').style.transform =
-      `translateY(${progress * 80}px)`;
-
-    document.querySelector('.hero-content').style.opacity =
-      1 - (progress * 0.7);
-
-    ticking = false;
-  }
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(updateOnScroll);
-      ticking = true;
-    }
-  });
-
-  updateOnScroll();
-}
-*/
-
-    
 /* ---------- ????? ??????? ?? CONFIG ---------- */
 document.getElementById('eyebrowTop').textContent  = CONFIG.eyebrowTop;
 document.getElementById('heroTagline').textContent = CONFIG.heroTagline;
@@ -684,9 +502,14 @@ if (!reduceMotion) {
 
     const scale = 1 + progress * 0.22;
     const lift  = progress * 50;
+    /* [MODIFICATION: SMOOTH BACKGROUND] Update style using transition already added in CSS */
     bgLayer.style.transform = `scale(${scale}) translateY(${-lift}px)`;
     heroOverlayEl.style.opacity = progress * 0.65;
 
+    /* [MODIFICATION: SMOOTH BACKGROUND]
+       We keep the original scroll-based seek logic,
+       but the smoothness is mainly handled by the CSS transition on the container itself now.
+    */
     if (isVideoLayer && bgVideoEl.duration) {
       requestVideoTime(bgVideoEl.duration * progress);
     }
@@ -698,7 +521,5 @@ if (!reduceMotion) {
   updateOnScroll();
 }
 </script>
-
-</script>   
 </body>
-</html>    
+</html>
