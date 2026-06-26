@@ -236,6 +236,8 @@
     background:var(--accent);
   }
 
+    /* ================= COUNTDOWN ================= */ .countdown-title{ text-align:center; margin-top:30px; font-size:28px; color:var(--accent); } .countdown{ display:flex; justify-content:center; gap:15px; margin-top:20px; flex-wrap:wrap; } .box{ width:100px; height:110px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:15px; display:flex; flex-direction:column; justify-content:center; align-items:center; } .number{ font-size:32px; font-weight:bold; } .label{ font-size:12px; opacity:0.7; }  
+
   .location-map {
     width: 100%;
     max-width: 600px;
@@ -331,6 +333,8 @@
         <div class="dt-value" id="timeValue"></div>
       </div>
     </div>
+<!-- COUNTDOWN --> <div class="countdown-title">Our Special Day</div> <div class="countdown"> <div class="box"> <div id="days" class="number">0</div> <div class="label">Days</div> </div> <div class="box"> <div id="hours" class="number">0</div> <div class="label">Hours</div> </div> <div class="box"> <div id="minutes" class="number">0</div> <div class="label">Minutes</div> </div> <div class="box"> <div id="seconds" class="number">0</div> <div class="label">Seconds</div> </div> </div>
+          
     <div class="location-map reveal">
       <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d110502.61185368595!2d31.188339832873155!3d30.059618471138307!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14583fa60b21beeb%3A0x4374c2e36567c963!2sCairo%2C%20Cairo%20Governorate%!5e0!3m2!1sen!2seg!4v1716333671234!5m2!1sen!2seg" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
@@ -537,6 +541,11 @@ if (!reduceMotion) {
 
   updateOnScroll();
 }
+
+ const weddingDate = new Date("Jul 22, 2026 15:37:25").getTime();
+      /* ================= COUNTDOWN ================= */ 
+      function updateCountdown(){ 
+      const now = new Date().getTime(); const distance = weddingDate - now; const days = Math.floor(distance / (1000*60*60*24)); const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60)); const minutes = Math.floor((distance % (1000*60*60)) / (1000*60)); const seconds = Math.floor((distance % (1000*60)) / 1000); document.getElementById("days").innerText = days; document.getElementById("hours").innerText = hours; document.getElementById("minutes").innerText = minutes; document.getElementById("seconds").innerText = seconds; if(distance < 0){ clearInterval(timer); document.querySelector(".countdown").innerHTML = "<h2 style='color:#d9a44c'>❤ The Celebration Has Begun ❤</h2>"; } } const timer = setInterval(updateCountdown, 1000); updateCountdown();     
 </script>
 </body>
 </html>```
